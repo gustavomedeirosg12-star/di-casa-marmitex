@@ -1178,12 +1178,12 @@ export default function App() {
                 ) : (
                   <button 
                     className={`w-full text-white font-bold py-3 rounded-xl transition-colors shadow-md flex justify-center items-center gap-2 ${
-                      isSubmitting || !isOpen ? 'bg-stone-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                      isSubmitting ? 'bg-stone-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
                     }`}
                     onClick={handleFinalizeOrder}
-                    disabled={isSubmitting || !isOpen}
+                    disabled={isSubmitting}
                   >
-                    {!isOpen ? 'Restaurante Fechado' : isSubmitting ? 'Processando...' : 'Finalizar Pedido'}
+                    {isSubmitting ? 'Processando...' : 'Finalizar Pedido'}
                   </button>
                 )}
               </div>
