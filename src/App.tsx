@@ -39,16 +39,16 @@ interface Order {
 
 // --- Initial Mock Data ---
 const INITIAL_MENU_ITEMS: Product[] = [
-  { id: 'pf-1', name: 'Prato Feito Tradicional', description: 'Arroz, feijão, bife acebolado, batata frita e salada.', price: 17.00, category: 'Pratos Feitos' },
-  { id: 'pf-2', name: 'Prato Feito de Frango', description: 'Arroz, feijão, filé de frango grelhado, purê e salada.', price: 17.00, category: 'Pratos Feitos' },
-  { id: 'mar-p', name: 'Marmitex P', description: 'Ideal para 1 pessoa. Escolha 1 carne e acompanhamentos.', price: 15.00, category: 'Marmitex' },
-  { id: 'mar-m', name: 'Marmitex M', description: 'Tamanho médio. Escolha até 2 carnes e acompanhamentos.', price: 20.00, category: 'Marmitex' },
-  { id: 'mar-g', name: 'Marmitex G', description: 'Bem servida. Escolha até 3 carnes e acompanhamentos.', price: 25.00, category: 'Marmitex' },
-  { id: 'esp-1', name: 'Espetinho de Carne', description: 'Espeto de alcatra macia.', price: 5.00, category: 'Espetinhos' },
-  { id: 'esp-2', name: 'Espetinho de Frango', description: 'Espeto de peito de frango com bacon.', price: 5.00, category: 'Espetinhos' },
-  { id: 'esp-3', name: 'Espetinho de Linguiça', description: 'Linguiça toscana assada na brasa.', price: 5.00, category: 'Espetinhos' },
-  { id: 'jan-1', name: 'Jantinha Simples', description: '1 Espeto à escolha, arroz, feijão tropeiro, mandioca e vinagrete.', price: 22.00, category: 'Jantinhas' },
-  { id: 'jan-2', name: 'Jantinha Completa', description: '2 Espetos à escolha, arroz, feijão tropeiro, mandioca e vinagrete.', price: 28.00, category: 'Jantinhas' },
+  { id: 'pf-1', name: 'Prato Feito Tradicional', description: 'Arroz, feijão, bife acebolado, batata frita e salada fresca.', price: 17.00, category: 'Pratos Feitos', imageUrl: 'https://images.unsplash.com/photo-1645112411341-6c4fd023714a?auto=format&fit=crop&q=80&w=800' },
+  { id: 'pf-2', name: 'Prato Feito de Frango', description: 'Arroz, feijão, filé de frango grelhado, purê de batatas e salada.', price: 17.00, category: 'Pratos Feitos', imageUrl: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=800' },
+  { id: 'mar-p', name: 'Marmitex P', description: 'Ideal para 1 pessoa. Escolha 1 carne e acompanhamentos caseiros.', price: 15.00, category: 'Marmitex', imageUrl: 'https://images.unsplash.com/photo-1581514472010-6cb281ce9a49?auto=format&fit=crop&q=80&w=800' },
+  { id: 'mar-m', name: 'Marmitex M', description: 'Tamanho médio. Escolha até 2 carnes e acompanhamentos.', price: 20.00, category: 'Marmitex', imageUrl: 'https://images.unsplash.com/photo-1581514472010-6cb281ce9a49?auto=format&fit=crop&q=80&w=800' },
+  { id: 'mar-g', name: 'Marmitex G', description: 'Bem servida. Escolha até 3 carnes e acompanhamentos.', price: 25.00, category: 'Marmitex', imageUrl: 'https://images.unsplash.com/photo-1581514472010-6cb281ce9a49?auto=format&fit=crop&q=80&w=800' },
+  { id: 'esp-1', name: 'Espetinho de Carne', description: 'Espeto de alcatra macia assada na brasa.', price: 5.00, category: 'Espetinhos', imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800' },
+  { id: 'esp-2', name: 'Espetinho de Frango', description: 'Espeto de peito de frango com bacon.', price: 5.00, category: 'Espetinhos', imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800' },
+  { id: 'esp-3', name: 'Espetinho de Linguiça', description: 'Linguiça toscana artesanal assada na brasa.', price: 5.00, category: 'Espetinhos', imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800' },
+  { id: 'jan-1', name: 'Jantinha Simples', description: '1 Espeto à escolha, arroz branco, feijão tropeiro, mandioca derretendo e vinagrete.', price: 22.00, category: 'Jantinhas', imageUrl: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&q=80&w=800' },
+  { id: 'jan-2', name: 'Jantinha Completa', description: '2 Espetos à escolha, arroz branco, feijão tropeiro, mandioca e vinagrete.', price: 28.00, category: 'Jantinhas', imageUrl: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&q=80&w=800' },
 ];
 
 // --- Helper Functions ---
