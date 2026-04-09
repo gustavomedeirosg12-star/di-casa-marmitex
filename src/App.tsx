@@ -252,27 +252,33 @@ function AdminPanel({ onExit, onLogout, menuItems }: AdminPanelProps) {
     };
 
     try {
-      if (editingProduct) {
-        // Usamos setDoc com merge: true caso o produto seja do fallback e ainda não exista no banco
-        await setDoc(doc(db, 'products', editingProduct.id), productData, { merge: true });
-      } else {
-        await addDoc(collection(db, 'products'), productData);
-      }
+      const savePromise = editingProduct
+        ? setDoc(doc(db, 'products', editingProduct.id), productData, { merge: true })
+        : addDoc(collection(db, 'products'), productData);
+        
+      await Promise.race([
+        savePromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+      ]);
+
       setEditingProduct(null);
       setIsAddingProduct(false);
     } catch (error) {
       console.error("Erro ao salvar produto:", error);
-      alert("Erro ao salvar produto.");
+      alert("Erro ao salvar produto. O banco de dados demorou muito para responder. Verifique se você ativou o Firestore Database no painel do Firebase.");
     }
   };
 
   const handleDeleteProduct = async (id: string) => {
     if(confirm('Tem certeza que deseja remover este item do cardápio?')) {
       try {
-        await deleteDoc(doc(db, 'products', id));
+        await Promise.race([
+          deleteDoc(doc(db, 'products', id)),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000))
+        ]);
       } catch (error) {
         console.error("Erro ao deletar produto:", error);
-        alert("Erro ao deletar produto.");
+        alert("Erro ao deletar produto. Verifique se o banco de dados está ativo.");
       }
     }
   };
@@ -280,14 +286,20 @@ function AdminPanel({ onExit, onLogout, menuItems }: AdminPanelProps) {
   const handleRestoreMenu = async () => {
     if(confirm('Isso vai adicionar os itens padrão ao banco de dados. Deseja continuar?')) {
       try {
-        for (const item of INITIAL_MENU_ITEMS) {
+        const restorePromises = INITIAL_MENU_ITEMS.map(item => {
           const { id, ...data } = item;
-          await setDoc(doc(db, 'products', id), data);
-        }
+          return setDoc(doc(db, 'products', id), data);
+        });
+        
+        await Promise.race([
+          Promise.all(restorePromises),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+        ]);
+        
         alert('Cardápio restaurado com sucesso!');
       } catch (error) {
         console.error("Erro ao restaurar:", error);
-        alert("Erro ao restaurar o cardápio.");
+        alert("Erro ao restaurar o cardápio. O banco de dados não respondeu. Você ativou o 'Firestore Database' no painel do Firebase?");
       }
     }
   };
@@ -902,7 +914,7 @@ export default function App() {
       const deliveryFee = orderType === 'delivery' ? 12 : 0;
       const finalTotal = cartTotal + deliveryFee;
 
-      // 1. Save to Firestore
+      // 1. Save to Firestore (with timeout so it doesn't block WhatsApp)
       const orderData = {
         customerName: customerName.trim(),
         orderType,
@@ -919,11 +931,19 @@ export default function App() {
         createdAt: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
-      
-      // Save order ID for tracking
-      setTrackingOrderId(docRef.id);
-      localStorage.setItem('lastOrderId', docRef.id);
+      try {
+        const savePromise = addDoc(collection(db, 'orders'), orderData);
+        const docRef = await Promise.race([
+          savePromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+        ]) as any;
+        
+        // Save order ID for tracking
+        setTrackingOrderId(docRef.id);
+        localStorage.setItem('lastOrderId', docRef.id);
+      } catch (e) {
+        console.warn("Aviso: Banco de dados offline ou não criado. O pedido será enviado apenas pelo WhatsApp.", e);
+      }
 
       // 2. Format WhatsApp Message
       let message = `*NOVO PEDIDO - DI CASA MARMITEX* 🍛\n\n`;
