@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "A customer order for Di Casa Marmitex",
+      "type": "object",
+      "properties": {
+        "customerName": {
+          "type": "string",
+          "description": "Name of the customer"
+        },
+        "orderType": {
+          "type": "string",
+          "enum": ["delivery", "pickup"],
+          "description": "Type of order"
+        },
+        "address": {
+          "type": "string",
+          "description": "Delivery address (if orderType is delivery)"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["pix", "credit", "debit", "cash"],
+          "description": "Chosen payment method"
+        },
+        "items": {
+          "type": "array",
+          "description": "List of items in the order"
+        },
+        "total": {
+          "type": "number",
+          "description": "Total price of the order"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Novos", "Preparando", "Saiu para Entrega", "Finalizados"],
+          "description": "Current status of the order"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the order was created"
+        }
+      },
+      "required": ["customerName", "orderType", "paymentMethod", "items", "total", "status", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A menu item for Di Casa Marmitex",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the product"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the product"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the product"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Pratos Feitos", "Marmitex", "Espetinhos", "Jantinhas"],
+          "description": "Category of the product"
+        }
+      },
+      "required": ["name", "description", "price", "category"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "Collection of all customer orders"
+    },
+    "/products/{productId}": {
+      "schema": {
+        "$ref": "#/entities/Product"
+      },
+      "description": "Collection of all menu items"
+    }
+  }
+}
