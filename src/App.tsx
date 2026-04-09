@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShoppingCart, Plus, Minus, Trash2, MapPin, Clock, Utensils, ChefHat, ArrowLeft, CheckCircle2, Lock, LayoutDashboard, ListOrdered, LogOut, Edit, PlusCircle, DollarSign, TrendingUp, Package, Users } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, MapPin, Clock, Utensils, ChefHat, ArrowLeft, CheckCircle2, Lock, LayoutDashboard, ListOrdered, LogOut, Edit, PlusCircle, DollarSign, TrendingUp, Package, Users, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { db, auth } from './firebase';
@@ -13,6 +13,7 @@ interface Product {
   description: string;
   price: number;
   category: Category;
+  imageUrl?: string;
 }
 
 interface CartItem {
@@ -123,6 +124,61 @@ function AdminPanel({ onExit, onLogout, menuItems }: AdminPanelProps) {
   // Menu Manager State
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  const handleGenerateImage = async () => {
+    const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+    const descInput = document.querySelector('textarea[name="description"]') as HTMLTextAreaElement;
+    const name = nameInput?.value;
+    const desc = descInput?.value;
+
+    if (!name) {
+      alert("Por favor, preencha o nome do prato antes de gerar a imagem.");
+      return;
+    }
+    setIsGeneratingImage(true);
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      
+      const prompt = `A professional, appetizing, high-quality food photography of a Brazilian dish called "${name}". Description: ${desc}. The image should be well-lit, suitable for a restaurant menu app.`;
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: prompt }],
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: "1:1"
+          }
+        }
+      });
+      
+      let generatedImageUrl = '';
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          const base64EncodeString = part.inlineData.data;
+          generatedImageUrl = `data:image/jpeg;base64,${base64EncodeString}`;
+          break;
+        }
+      }
+      
+      if (generatedImageUrl) {
+        const urlInput = document.querySelector('input[name="imageUrl"]') as HTMLInputElement;
+        if (urlInput) {
+          urlInput.value = generatedImageUrl;
+        }
+      } else {
+        alert("Não foi possível gerar a imagem.");
+      }
+    } catch (error) {
+      console.error("Erro ao gerar imagem:", error);
+      alert("Erro ao gerar a imagem com IA.");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
@@ -192,6 +248,7 @@ function AdminPanel({ onExit, onLogout, menuItems }: AdminPanelProps) {
       description: formData.get('description') as string,
       price: parseFloat(formData.get('price') as string),
       category: formData.get('category') as Category,
+      imageUrl: formData.get('imageUrl') as string || '',
     };
 
     try {
@@ -506,6 +563,21 @@ function AdminPanel({ onExit, onLogout, menuItems }: AdminPanelProps) {
                         <label className="block text-sm font-medium text-stone-700 mb-1">Descrição</label>
                         <textarea name="description" defaultValue={editingProduct?.description} required rows={2} className="w-full p-2 border rounded-lg resize-none" />
                       </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-stone-700 mb-1">URL da Imagem (Opcional)</label>
+                        <div className="flex gap-2">
+                          <input name="imageUrl" defaultValue={editingProduct?.imageUrl} placeholder="Cole o link da imagem ou gere com IA" className="flex-1 p-2 border rounded-lg" />
+                          <button 
+                            type="button" 
+                            onClick={handleGenerateImage}
+                            disabled={isGeneratingImage}
+                            className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+                          >
+                            {isGeneratingImage ? 'Gerando...' : <><Sparkles className="w-4 h-4" /> Gerar com IA</>}
+                          </button>
+                        </div>
+                        <p className="text-xs text-stone-500 mt-1">Você pode colar um link de imagem da internet ou usar a Inteligência Artificial para criar uma foto do prato.</p>
+                      </div>
                     </div>
                     <div className="flex justify-end gap-2 pt-2">
                       <button type="button" onClick={() => { setIsAddingProduct(false); setEditingProduct(null); }} className="px-4 py-2 text-stone-600 hover:bg-stone-200 rounded-lg font-medium transition-colors">Cancelar</button>
@@ -529,8 +601,19 @@ function AdminPanel({ onExit, onLogout, menuItems }: AdminPanelProps) {
                     {menuItems.map(item => (
                       <tr key={item.id} className="border-b border-stone-50 last:border-0 hover:bg-stone-50/50 transition-colors">
                         <td className="py-4">
-                          <p className="font-medium text-stone-800">{item.name}</p>
-                          <p className="text-xs text-stone-500 truncate max-w-xs">{item.description}</p>
+                          <div className="flex items-center gap-3">
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-lg object-cover border border-stone-200" referrerPolicy="no-referrer" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center border border-stone-200 text-stone-400">
+                                <ImageIcon className="w-5 h-5" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium text-stone-800">{item.name}</p>
+                              <p className="text-xs text-stone-500 truncate max-w-xs">{item.description}</p>
+                            </div>
+                          </div>
                         </td>
                         <td className="py-4 text-stone-600">
                           <span className="bg-stone-100 px-2 py-1 rounded text-xs">{item.category}</span>
@@ -963,18 +1046,25 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {items.map((item) => (
                   <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-lg text-red-900">{item.name}</h4>
-                        <span className="font-bold text-orange-600 whitespace-nowrap ml-2">
-                          {formatPrice(item.price)}
-                        </span>
+                    <div className="flex gap-4 mb-4">
+                      {item.imageUrl && (
+                        <div className="w-24 h-24 shrink-0">
+                          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover rounded-lg border border-stone-100" referrerPolicy="no-referrer" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-semibold text-lg text-red-900 leading-tight">{item.name}</h4>
+                          <span className="font-bold text-orange-600 whitespace-nowrap ml-2">
+                            {formatPrice(item.price)}
+                          </span>
+                        </div>
+                        <p className="text-stone-500 text-sm line-clamp-3">{item.description}</p>
                       </div>
-                      <p className="text-stone-500 text-sm mb-4">{item.description}</p>
                     </div>
                     <button
                       onClick={() => addToCart(item)}
-                      className="w-full bg-orange-100 text-orange-700 font-medium py-2 rounded-lg hover:bg-orange-200 transition-colors flex items-center justify-center gap-2"
+                      className="w-full bg-orange-100 text-orange-700 font-medium py-2 rounded-lg hover:bg-orange-200 transition-colors flex items-center justify-center gap-2 mt-auto"
                     >
                       <Plus className="w-4 h-4" /> Adicionar
                     </button>
